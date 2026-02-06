@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Valentine?</title>
+
+  <style>
+    :root{
+      --bg1:#ffe6f1;
+      --bg2:#fff6fb;
+      --text:#1b1b1b;
+      --card:#ffffffcc;
+      --shadow: 0 18px 50px rgba(0,0,0,.12);
+      --yes:#ff4d8d;
+      --maybe:#6b7bff;
+      --no:#111;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, var(--bg2), transparent 60%),
+        radial-gradient(1000px 800px at 80% 90%, var(--bg1), transparent 60%),
+        linear-gradient(180deg, #fff, #ffeaf4);
+      overflow:hidden;
+    }
+
+    /* floating hearts */
+    .hearts{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.25;
+    }
+    .hearts span{
+      position:absolute;
+      bottom:-10%;
+      font-size:26px;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp{
+      from{ transform: translateY(0); }
+      to{ transform: translateY(-120vh); }
+    }
+
+    .card{
+      width:min(560px, 92vw);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+      border-radius:24px;
+      padding:34px 26px;
+      text-align:center;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size:clamp(28px, 4vw, 42px);
+      letter-spacing:-.5px;
+    }
+
+    p{ opacity:.8; margin:0 0 18px; }
+
+    .buttons{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      margin-top:18px;
+      position:relative;
+    }
+
+    button{
+      padding:12px 20px;
+      border-radius:999px;
+      border:0;
+      font-size:16px;
+      font-weight:650;
+      cursor:pointer;
+      box-shadow:0 10px 20px rgba(0,0,0,.15);
+      min-width:120px;
+      user-select:none;
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    button:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+    button:active{ transform: translateY(0) scale(.98); }
+
+    .yes{ background:var(--yes); color:white; }
+    .maybe{ background:var(--maybe); color:white; }
+    .no{ background:var(--no); color:white; }
+
+    /* IMPORTANT: keep No in the row, but allow smooth run-away transforms */
+    #noBtn{
+      position: relative;            /* stays aligned in flex */
+      transition: transform .35s ease; /* smooth run */
+      z-index: 5;                    /* above other buttons when it moves */
+      will-change: transform;
+    }
+
+    .footer{
+      margin-top:18px;
+      font-size:13px;
+      opacity:.6;
+    }
+
+    /* overlays */
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background:rgba(0,0,0,.45);
+      z-index:10;
+      padding:18px;
+    }
+
+    .modal{
+      background:white;
+      padding:22px 18px;
+      border-radius:18px;
+      width:min(480px, 92vw);
+      text-align:center;
+      box-shadow:0 18px 50px rgba(0,0,0,.25);
+    }
+
+    .errorBox{
+      background:#0b0b0b;
+      color:#eee;
+      padding:14px;
+      border-radius:12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      text-align:left;
+      font-size:14px;
+      line-height:1.45;
+      margin: 14px 0 16px;
+    }
+    .red{ color:#ff4d4d; }
+    .dim{ color:#aaa; }
+
+    /* shake */
+    @keyframes shake {
+      0%,100%{ transform:translateX(0); }
+      25%{ transform:translateX(-8px); }
+      50%{ transform:translateX(8px); }
+      75%{ transform:translateX(-6px); }
+    }
+    .shake{ animation: shake .35s; }
+
+    /* heart pop */
+    .popHeart{
+      position:fixed;
+      font-size:26px;
+      pointer-events:none;
+      animation: fly 900ms ease-out forwards;
+      z-index:999;
+      will-change: transform, opacity;
+    }
+    @keyframes fly{
+      0%{ opacity:0; transform: translate(-50%, -50%) scale(.6); }
+      15%{ opacity:1; }
+      100%{
+        opacity:0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hearts" aria-hidden="true">
+    <span style="left:10%;animation-duration:12s;animation-delay:-2s">💗</span>
+    <span style="left:30%;animation-duration:14s;animation-delay:-7s">💖</span>
+    <span style="left:50%;animation-duration:11s;animation-delay:-4s">💘</span>
+    <span style="left:70%;animation-duration:15s;animation-delay:-9s">💝</span>
+    <span style="left:90%;animation-duration:13s;animation-delay:-5s">💞</span>
+  </div>
+
+  <main class="card" id="card" role="main">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>You better choose wisely or else...</p>
+
+    <div class="buttons">
+      <button class="yes" id="yesBtn">Yes</button>
+      <button class="maybe" id="maybeBtn">Maybe</button>
+      <button class="no" id="noBtn">No</button>
+    </div>
+
+    <div class="footer">made with ❤️</div>
+  </main>
+
+  <!-- YES overlay -->
+  <section class="overlay" id="yesOverlay" aria-hidden="true">
+    <div class="modal">
+      <h2>YAY!!! 🎉💞</h2>
+      <p>You just made my day 💋</p>
+      <button class="yes" onclick="closeAll()">Aww okay</button>
+    </div>
+  </section>
+
+  <!-- NO overlay -->
+  <section class="overlay" id="noOverlay" aria-hidden="true">
+    <div class="modal">
+      <h2>NOPE ❌</h2>
+      <div class="errorBox">
+        <div class="red">ERROR: HEARTBROKEN</div>
+        <div class="dim">Option "no" is not supported.</div>
+        <div class="dim">Suggestion: choose YES.</div>
+      </div>
+      <button onclick="closeAll()">Back</button>
+    </div>
+  </section>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const maybeBtn = document.getElementById("maybeBtn");
+    const noBtn = document.getElementById("noBtn");
+    const card = document.getElementById("card");
+
+    const yesOverlay = document.getElementById("yesOverlay");
+    const noOverlay = document.getElementById("noOverlay");
+
+    // YES: overlay + hearts pop
+    yesBtn.addEventListener("click", () => {
+      open(yesOverlay);
+      heartBurstFrom(yesBtn);
+    });
+
+    // MAYBE: escalates and eventually forces YES
+    let maybeCount = 0;
+    maybeBtn.addEventListener("click", () => {
+      const msgs = [
+        "Maybe? 🤨 Try again.",
+        "Come on… pick YES 😭",
+        "LAST CHANCE 😌",
+        "Okay I’m taking that as YES 💍"
+      ];
+      alert(msgs[Math.min(maybeCount, msgs.length - 1)]);
+      maybeCount++;
+
+      if (maybeCount >= 4) {
+        open(yesOverlay);
+        heartBurstFrom(maybeBtn);
+      }
+    });
+
+    // NO: smoothly runs away and stays within the screen
+    const padding = 16;
+
+    noBtn.addEventListener("mouseenter", () => {
+      const rect = noBtn.getBoundingClientRect();
+
+      // Pick a target position (top-left) that keeps the button fully onscreen
+      const targetLeft = rand(padding, window.innerWidth - rect.width - padding);
+      const targetTop  = rand(padding, window.innerHeight - rect.height - padding);
+
+      // Compute how far we need to move from current position
+      const dx = targetLeft - rect.left;
+      const dy = targetTop  - rect.top;
+
+      // Move smoothly using transform (stays aligned originally)
+      noBtn.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+
+    // If clicked anyway (touch devices can still get it)
+    noBtn.addEventListener("click", () => {
+      card.classList.remove("shake");
+      void card.offsetWidth;
+      card.classList.add("shake");
+
+      alert("ERROR 💔: That option is not supported. Please choose again.");
+      open(noOverlay);
+    });
+
+    function rand(min, max){
+      return Math.random() * (max - min) + min;
+    }
+
+    function open(el){
+      closeAll();
+      el.style.display = "grid";
+      el.setAttribute("aria-hidden","false");
+    }
+
+    function closeAll(){
+      [yesOverlay, noOverlay].forEach(el => {
+        el.style.display = "none";
+        el.setAttribute("aria-hidden","true");
+      });
+    }
+
+    // close overlays by clicking outside
+    [yesOverlay, noOverlay].forEach(overlay => {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeAll();
+      });
+    });
+
+    // Escape closes overlays
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeAll();
+    });
+
+    // Heart burst effect from a button
+    function heartBurstFrom(btn){
+      const rect = btn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      const hearts = ["💖","💘","💝","💗","💞","💕"];
+      const count = 18;
+
+      for (let i = 0; i < count; i++){
+        const el = document.createElement("div");
+        el.className = "popHeart";
+        el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+        const dx = (Math.random() * 220 - 110).toFixed(0) + "px";
+        const dy = (Math.random() * -240 - 60).toFixed(0) + "px";
+
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+        el.style.setProperty("--dx", dx);
+        el.style.setProperty("--dy", dy);
+
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 900);
+      }
+    }
+  </script>
+</body>
+</html>
